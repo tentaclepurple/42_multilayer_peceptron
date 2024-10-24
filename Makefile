@@ -2,26 +2,40 @@
 
 all: run open
 
-run:
+app:
 	@echo "Starting Streamlit server..."
-	@streamlit run app.py & \
+	@(streamlit run app.py 2>&1 | \
+	while read line; do \
+		echo "$$line"; \
+		if echo "$$line" | grep -q "Local URL:"; then \
+			PORT=$$(echo "$$line" | grep -o "localhost:[0-9]*" | cut -d':' -f2); \
+			LOCAL_URL="http://localhost:$$PORT"; \
+			if [ "$$(uname -s)" = "Linux" ] && [ "$$(grep -i microsoft /proc/version)" ]; then \
+				cmd.exe /c start "$$LOCAL_URL"; \
+			elif [ "$$(uname -s)" = "Linux" ]; then \
+				xdg-open "$$LOCAL_URL"; \
+			fi; \
+		fi \
+	done) & \
 	echo $$! > .streamlit.pid
-	@echo "Waiting for server to start..."
-	@sleep 2
 
-open:
-	@echo "Opening Streamlit in browser..."
-	@UNAME_S=$$(uname -s); \
-	if [ "$$UNAME_S" = "Linux" ] && [ "$$(grep -i microsoft /proc/version)" ]; then \
-		echo "Detected WSL"; \
-		cmd.exe /c start http://localhost:8501; \
-	elif [ "$$UNAME_S" = "Linux" ]; then \
-		echo "Detected Linux"; \
-		xdg-open http://localhost:8501 || echo "Failed to open browser"; \
-	else \
-		echo "Unknown OS. Please open http://localhost:8501 manually"; \
-	fi
-	@echo "Streamlit is running at http://localhost:8501"
+101:
+	@echo "Starting Streamlit server..."
+	@(streamlit run mlp101.py 2>&1 | \
+	while read line; do \
+		echo "$$line"; \
+		if echo "$$line" | grep -q "Local URL:"; then \
+			PORT=$$(echo "$$line" | grep -o "localhost:[0-9]*" | cut -d':' -f2); \
+			LOCAL_URL="http://localhost:$$PORT"; \
+			if [ "$$(uname -s)" = "Linux" ] && [ "$$(grep -i microsoft /proc/version)" ]; then \
+				cmd.exe /c start "$$LOCAL_URL"; \
+			elif [ "$$(uname -s)" = "Linux" ]; then \
+				xdg-open "$$LOCAL_URL"; \
+			fi; \
+		fi \
+	done) & \
+	echo $$! > .streamlit.pid
+
 
 stop:
 	@if [ -f .streamlit.pid ]; then \
