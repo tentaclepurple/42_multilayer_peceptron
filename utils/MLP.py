@@ -48,7 +48,7 @@ class MLPSequential:
 
         self.history = {}
 
-    def add(self, num_neurons, activation):
+    def Dense(self, num_neurons, activation):
         """
         Method to add a new layer to the model.
 
