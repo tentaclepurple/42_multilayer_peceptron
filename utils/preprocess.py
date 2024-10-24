@@ -69,7 +69,7 @@ def get_df(data_path):
 
     df['diagnosis'] = df['diagnosis'].map({'M': 1, 'B': 0})
 
-    print(df['diagnosis'].value_counts())
+    #print(df['diagnosis'].value_counts())
 
     #data_analysis(df)
 
