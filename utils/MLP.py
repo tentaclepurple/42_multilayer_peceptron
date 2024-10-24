@@ -1,10 +1,10 @@
 import json
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 class MLPSequential:
 
-    def __init__(self, input_size, output_size, seed=None):
+    def __init__(self, input_size, output_size=2, seed=None):
         """
         MPLSequential class constructor.
 
@@ -45,6 +45,8 @@ class MLPSequential:
         self.val_loss = []
         self.train_accuracy = []
         self.val_accuracy = []
+
+        self.history = {}
 
     def add(self, num_neurons, activation):
         """
@@ -134,6 +136,10 @@ class MLPSequential:
 
         # Unpack validation data if provided
         X_valid, y_valid = validation_data if validation_data is not None else (None, None)
+
+    
+        y_train = np.eye(2)[y_train]
+        y_valid = np.eye(2)[y_valid]
 
         for epoch in range(epochs):
             # Feedforward to get predictions
@@ -262,8 +268,6 @@ class MLPSequential:
             self.weights[idx] -= learning_rate * dWs[idx]
             self.biases[idx] -= learning_rate * dbs[idx]
 
-        print("Weights and biases updated.")
-
     def relu(self, z):
         """
         Rectified Linear Unit (ReLU).
@@ -332,43 +336,43 @@ class MLPSequential:
         targets = np.argmax(y_true, axis=1)
         return np.mean(predictions == targets)
 
-    def set_seed(self):
+    def evaluate(self, X_test, y_test):
         """
-        Método para establecer la semilla si se proporciona, para obtener resultados reproducibles.
-        """
-        pass
+        Evaluate the model on the test data.
 
-    def evaluate(self, X, y):
-        """
-        Método para evaluar el modelo en datos de prueba.
+        Parameters:
+        - X_test (np.array): Test input data.
+        - y_test (np.array): Test output labels.
         
-        Parámetros:
-        - X (np.array): Datos de entrada.
-        - y (np.array): Etiquetas de salida.
-        
-        Retorna:
-        - float: Pérdida en los datos de prueba.
+        Returns:
+        - test_loss (float): Loss on the test set.
+        - test_accuracy (float): Accuracy on the test set.
         """
-        pass
+        y_test = np.eye(2)[y_test]
+
+        y_pred = self.feedforward(X_test)
+        test_loss = self.binary_cross_entropy(y_test, y_pred)
+        test_accuracy = self.compute_accuracy(y_test, y_pred)
+        print(f"Test Loss: {test_loss:.4f} - Test Accuracy: {test_accuracy:.4f}")
+        return test_loss, test_accuracy
 
     def predict(self, X):
         """
-        Método para realizar predicciones con el modelo entrenado.
+        Make predictions using the trained model.
         
-        Parámetros:
-        - X (np.array): Datos de entrada.
+        Parameters:
+        - X (np.array): Input data to predict.
         
-        Retorna:
-        - np.array: Predicciones de la red.
+        Returns:
+        - np.array: Predicted classes.
         """
-        pass
+        y_pred = self.feedforward(X)
+        # Convert softmax probabilities to class predictions (0 or 1)
+        return np.argmax(y_pred, axis=1)
 
     def save(self, filepath):
         """
-        Guarda el modelo en un archivo.
-        
-        Parámetros:
-        - filepath (str): Ruta del archivo donde se guardará el modelo.
+        Save
         """
         model_data = {
             'input_size': self.input_size,
@@ -411,3 +415,35 @@ class MLPSequential:
 
         print(f"Modelo cargado desde {filepath}.")
         return model
+
+    def plot_loss(self):
+        """
+        Plot the loss history if it is not empty.
+        """
+        if self.history['loss'] and self.history['val_loss']:
+            plt.figure(figsize=(9, 9))
+            plt.plot(self.history['loss'], label='Loss')
+            plt.plot(self.history['val_loss'], label='Validation Loss')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.title('Loss vs. Validation Loss')
+            plt.legend()
+            plt.show()
+        else:
+            print("History is empty. Please train the model before plotting the loss.")
+
+    def plot_accuracy(self):
+        """
+        Plot the accuracy history if it is not empty.
+        """
+        if self.history['accuracy'] and self.history['val_accuracy']:
+            plt.figure(figsize=(9, 9))
+            plt.plot(self.history['accuracy'], label='Accuracy')
+            plt.plot(self.history['val_accuracy'], label='Validation Accuracy')
+            plt.xlabel('Epoch')
+            plt.ylabel('Accuracy')
+            plt.title('Accuracy vs. Validation Accuracy')
+            plt.legend()
+            plt.show()
+        else:
+            print("History is empty. Please train the model before plotting the accuracy.")
