@@ -1,10 +1,18 @@
 import json
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+import random
+import os
+import ast
+
+from sklearn.metrics import confusion_matrix
+
 
 class MLPSequential:
 
-    def __init__(self, input_size, output_size=2, seed=None):
+    def __init__(self, input_size, output_size=2):
         """
         MPLSequential class constructor.
 
@@ -29,7 +37,7 @@ class MLPSequential:
         """
         self.input_size = input_size
         self.output_size = output_size
-        self.seed = seed
+        self.seed = None
         self.layers = []
         self.weights = []
         self.biases = []
@@ -47,8 +55,11 @@ class MLPSequential:
         self.val_accuracy = []
 
         self.history = {}
+        self.epochs = 0
+        self.timestamp = None
+        self.learning_rate = None
 
-    def Dense(self, num_neurons, activation):
+    def Dense(self, num_neurons, activation, seed=None):
         """
         Method to add a new layer to the model.
 
@@ -65,6 +76,9 @@ class MLPSequential:
 
         if activation not in self.activation_functions:
             raise ValueError(f"Activation function '{activation}' is not supported.")
+
+        if seed is not None:
+            self.seed = random.randint(0, 1000)
 
         self.layers.append({
             'num_neurons': num_neurons,
@@ -132,12 +146,14 @@ class MLPSequential:
         # Store history of loss and accuracy
         self.history = {'loss': [], 'val_loss': [], 'accuracy': [], 'val_accuracy': []}
         best_val_loss = float('inf')
+        self.epochs = epochs
         epochs_no_improve = 0
+        self.timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.learning_rate = learning_rate
 
         # Unpack validation data if provided
         X_valid, y_valid = validation_data if validation_data is not None else (None, None)
 
-    
         y_train = np.eye(2)[y_train]
         y_valid = np.eye(2)[y_valid]
 
@@ -182,6 +198,17 @@ class MLPSequential:
                 print(f"Epoch {epoch+1}/{epochs} - loss: {loss:.4f} - accuracy: {accuracy:.4f}")
 
         print("Training finished.")
+        
+        if X_valid is not None and y_valid is not None:
+            y_valid_pred = self.feedforward(X_valid)
+            y_valid_labels = np.argmax(y_valid, axis=1)
+            y_pred_labels = np.argmax(y_valid_pred, axis=1)
+            cm = confusion_matrix(y_valid_labels, y_pred_labels)
+            print("Confusion Matrix:\n", cm)
+            TN, FP, FN, TP = cm.ravel()
+            print(f"True Positives: {TP}\nTrue Negatives: {TN}\nFalse Positives: {FP}\nFalse Negatives: {FN}")
+        
+
         
     def feedforward(self, X):
         """
@@ -372,7 +399,9 @@ class MLPSequential:
 
     def save(self, filepath):
         """
-        Save
+        Save the model to a JSON file.
+        Parameters:
+        - filepath (str): Path to save
         """
         model_data = {
             'input_size': self.input_size,
@@ -384,36 +413,32 @@ class MLPSequential:
         }
         with open(filepath, 'w') as f:
             json.dump(model_data, f)
-        print(f"Modelo guardado en {filepath}.")
+        print(f"Model saved: {filepath}.")
 
     @classmethod
     def load(cls, filepath):
         """
-        Carga un modelo desde un archivo y devuelve una instancia de MLPSequential.
-        
-        Parámetros:
-        - filepath (str): Ruta del archivo desde donde se cargará el modelo.
-        
-        Retorna:
-        - MLPSequential: Instancia de la clase cargada desde el archivo.
+        Load a model from a JSON file.
+        Parameters:
+        - filepath (str): Path to the JSON file.
+        Returns:
+        - MLPSequential: Model loaded from the file.
         """
         with open(filepath, 'r') as f:
             model_data = json.load(f)
 
-        # Crear una nueva instancia de MLPSequential
         model = cls(
             input_size=model_data['input_size'],
             output_size=model_data['output_size'],
             seed=model_data['seed']
         )
 
-        # Restaurar capas, pesos y sesgos
         model.layers = model_data['layers']
         model.weights = [np.array(w) for w in model_data['weights']]
         model.biases = [np.array(b) for b in model_data['biases']]
         model.is_compiled = True  # Se asume que un modelo cargado ya estaba compilado
 
-        print(f"Modelo cargado desde {filepath}.")
+        print(f"Model loaded: {filepath}.")
         return model
 
     def plot_loss(self):
@@ -421,7 +446,7 @@ class MLPSequential:
         Plot the loss history if it is not empty.
         """
         if self.history['loss'] and self.history['val_loss']:
-            plt.figure(figsize=(9, 9))
+            plt.figure(figsize=(7, 6))
             plt.plot(self.history['loss'], label='Loss')
             plt.plot(self.history['val_loss'], label='Validation Loss')
             plt.xlabel('Epoch')
@@ -437,7 +462,7 @@ class MLPSequential:
         Plot the accuracy history if it is not empty.
         """
         if self.history['accuracy'] and self.history['val_accuracy']:
-            plt.figure(figsize=(9, 9))
+            plt.figure(figsize=(7, 6))
             plt.plot(self.history['accuracy'], label='Accuracy')
             plt.plot(self.history['val_accuracy'], label='Validation Accuracy')
             plt.xlabel('Epoch')
@@ -447,3 +472,70 @@ class MLPSequential:
             plt.show()
         else:
             print("History is empty. Please train the model before plotting the accuracy.")
+
+    def save_and_plot_history(
+                            self, history_file='models/historic.csv',
+                            plot_file='models/historic.png'
+                            ):
+        """
+        Save the training history to a CSV file and plot the training loss history.
+        Parameters:
+        - history_file (str): Path to save the CSV file.
+        - plot_file (str): Path to save the plot.
+
+        The CSV file will have the following columns:
+        - timestamp: Timestamp of the training process.
+        - n_layers: Number of layers in the model.
+        - n_epochs: Number of epochs in the training process.
+        - learning_rate: Learning rate used in the training process.
+        - loss_values: List of loss values during training
+
+        The plot will show the training loss history for all the models in the CSV file.
+        """
+        loss_values = self.history['loss']
+        
+        n_layers = len(self.layers)
+        n_epochs = self.epochs
+        learning_rate = self.learning_rate
+
+        new_entry = {
+            'timestamp': self.timestamp,
+            'n_layers': n_layers if n_layers is not None else 'N/A',
+            'n_epochs': n_epochs if n_epochs != 0 else 'N/A',
+            'learning_rate': learning_rate if learning_rate is not None else 'N/A',
+            'loss_values': str(loss_values)
+        }
+        
+        if os.path.exists(history_file):
+            df = pd.read_csv(history_file)
+            df['loss_values'] = df['loss_values'].replace('nan', '0')
+
+        else:
+            df = pd.DataFrame(columns=['timestamp', 'n_layers', 'n_epochs', 'learning_rate', 'loss_values'])
+        
+        df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+        
+        df.to_csv(history_file, index=False)
+        
+        plt.figure(figsize=(12, 6))
+        
+        colors = plt.cm.rainbow(np.linspace(0, 1, len(df)))
+        
+        for idx, row in df.iterrows():
+            loss_values = ast.literal_eval(row['loss_values'])
+            epochs = range(1, len(loss_values) + 1)
+            
+            label = f"{row['timestamp']} (Layers:{row['n_layers']}, Epochs:{row['n_epochs']}, LR:{row['learning_rate']})"
+            
+            plt.plot(epochs, loss_values, color=colors[idx], label=label)
+        
+        plt.title('Training Loss History')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.grid(True)
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.tight_layout()
+        
+        plt.savefig(plot_file, bbox_inches='tight')
+        plt.show()
+        plt.close()
