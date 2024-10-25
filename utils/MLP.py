@@ -180,7 +180,8 @@ class MLPSequential:
                 self.history['val_loss'].append(val_loss)
                 self.history['val_accuracy'].append(val_accuracy)
 
-                print(f"Epoch {epoch+1}/{epochs} - loss: {loss:.4f} - val_loss: {val_loss:.4f} - accuracy: {accuracy:.4f} - val_accuracy: {val_accuracy:.4f}")
+                print(f"Epoch {epoch+1}/{epochs} - loss: {loss:.4f} - val_loss: {val_loss:.4f}"
+                        f" - accuracy: {accuracy:.4f} - val_accuracy: {val_accuracy:.4f}")
 
                 # Early Stopping: verify if validation loss improves
                 if val_loss < best_val_loss:
@@ -270,7 +271,8 @@ class MLPSequential:
             W = self.weights[idx]
             activation_func = self.activation_functions[self.layers[idx]['activation']]
             
-            # calculate the derivative of the activation function using the derivative of the activation function
+            # calculate the derivative of the activation function
+            # using the derivative of the activation function
             if self.layers[idx]['activation'] == 'relu':
                 dZ = error * self.relu_derivative(Z)
             elif self.layers[idx]['activation'] == 'sigmoid':
@@ -279,7 +281,7 @@ class MLPSequential:
                 dZ = error
 
             # Calculate gradients
-            dW = np.dot(A_prev.T, dZ) / X.shape[0]  # Media de los gradientes por lote
+            dW = np.dot(A_prev.T, dZ) / X.shape[0]
             db = np.sum(dZ, axis=0, keepdims=True) / X.shape[0]
 
             # Store gradients

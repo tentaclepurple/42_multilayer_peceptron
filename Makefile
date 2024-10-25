@@ -29,13 +29,25 @@ app:
 			LOCAL_URL="http://localhost:$$PORT"; \
 			if [ "$$(uname -s)" = "Linux" ] && [ "$$(grep -i microsoft /proc/version)" ]; then \
 				cmd.exe /c start "$$LOCAL_URL"; \
-			elif [ "$$(uname -s)" = "Linux" ]; then \
-				xdg-open "$$LOCAL_URL"; \
 			fi; \
 		fi \
 	done) & \
 	echo $$! > .streamlit.pid
 
+mpl:
+	@echo "Starting Streamlit server..."
+	@(streamlit run mplweb.py 2>&1 | \
+	while read line; do \
+		echo "$$line"; \
+		if echo "$$line" | grep -q "Local URL:"; then \
+			PORT=$$(echo "$$line" | grep -o "localhost:[0-9]*" | cut -d':' -f2); \
+			LOCAL_URL="http://localhost:$$PORT"; \
+			if [ "$$(uname -s)" = "Linux" ] && [ "$$(grep -i microsoft /proc/version)" ]; then \
+				cmd.exe /c start "$$LOCAL_URL"; \
+			fi; \
+		fi \
+	done) & \
+	echo $$! > .streamlit.pid
 
 stop:
 	@if [ -f .streamlit.pid ]; then \
@@ -43,6 +55,8 @@ stop:
 		kill $$(cat .streamlit.pid) 2>/dev/null || true; \
 		rm .streamlit.pid; \
 	fi
+	@echo "Stopping all Streamlit processes..."
+	@pkill -f streamlit || true
 
 clean: stop
 	@echo "Cleaning up..."
