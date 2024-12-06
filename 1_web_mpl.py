@@ -3,8 +3,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 from utils.MLP import MLPSequential
 from utils.preprocess import get_df, set_data_for_model_with_eval
+
+# Create necessary directories
+os.makedirs('models', exist_ok=True)
+os.makedirs('data', exist_ok=True)
 
 # Project Introduction
 st.title("MLP Classifier Interactive Application")
@@ -111,21 +116,35 @@ learning_rate = st.number_input("Enter learning rate:", min_value=0.0001, max_va
 early_stopping_patience = st.slider("Early Stopping Patience:", min_value=1, max_value=50, value=5)
 
 if st.button("Train Model"):
-    model.fit(X_train, y_train, epochs=epochs, learning_rate=learning_rate,
-              validation_data=(X_valid, y_valid), early_stopping_patience=early_stopping_patience)
+    status_text = st.empty()
+    
+    try:
+        with st.spinner('Training in progress...'):
+            model.fit(X_train, y_train, epochs=epochs, learning_rate=learning_rate,
+                     validation_data=(X_valid, y_valid), early_stopping_patience=early_stopping_patience)
+            
+            val_loss, val_accuracy = model.evaluate(X_valid, y_valid)
+            st.success('Training completed!')
+            st.write(f"Final Validation Loss: {val_loss:.4f}")
+            st.write(f"Final Validation Accuracy: {val_accuracy:.4f}")
 
-    val_loss, val_accuracy = model.evaluate(X_valid, y_valid)
-    st.write(f"Validation Loss: {val_loss:.4f}")
-    st.write(f"Validation Accuracy: {val_accuracy:.4f}")
+            col1, col2 = st.columns(2)
+            with col1:
+                model.plot_loss()
+                st.pyplot(plt.gcf())
+                plt.close()
+            with col2:
+                model.plot_accuracy()
+                st.pyplot(plt.gcf())
+                plt.close()
 
-    model.plot_loss()
-    model.plot_accuracy()
-    st.pyplot(plt.gcf())
+            model.save_and_plot_history()
+            st.write("Training history saved and plotted.")
+            
+    except Exception as e:
+        st.error(f"An error occurred during training: {str(e)}")
 
-    model.save_and_plot_history()
-    st.write("Training history saved and plotted.")
-
-# Final Evaluation
+# Final Evaluation Section
 st.write("""
 ## Final Model Evaluation
 [intro text about confusion matrix, what each value means, and how to interpret the results]
@@ -157,6 +176,7 @@ if st.button("Evaluate Model"):
     ax_cm.set_ylabel('True Label')
     ax_cm.set_title('Confusion Matrix')
     st.pyplot(fig_cm)
+    plt.close()
 
     # Detailed confusion matrix breakdown
     st.write("### Confusion Matrix Breakdown:")
