@@ -6,106 +6,57 @@ import seaborn as sns
 from utils.MLP import MLPSequential
 from utils.preprocess import get_df, set_data_for_model_with_eval
 
-# Project Introduction
-st.title("MLP Classifier Interactive Application")
-
-st.write("""
-## Introduction to Multilayer Perceptron
-[intro text about what is a multilayer perceptron, its components, and how it works]
-""")
-
-# Data Section
-st.write("""
-## Dataset Overview
-[intro text about the dataset, what features it contains, and what we're trying to predict]
-""")
-
 data_path = 'data/data.csv'
 df = get_df(data_path)
+
+st.title("MLP Classifier Interactive Application")
+
+st.write("## Dataset Preview")
 st.dataframe(df)
 
-# Data Analysis Section
-st.write("""
-## Data Analysis
-### Correlation Analysis
-[intro text about correlation heatmaps and what insights we can gain from them]
-""")
-
+st.write("## Heatmap of Feature Correlation")
 fig, ax = plt.subplots(figsize=(25, 20))
 sns.heatmap(df.corr(), annot=True, cmap='coolwarm', linewidths=0.5, ax=ax)
 ax.set_title('Feature Correlation Heatmap')
 st.pyplot(fig)
 
-st.write("""
-### Feature Visualization
-[intro text about scatter plots, how to use this section, and what patterns to look for]
-""")
-
+st.write("## Select Features for Scatter Plot")
 feature_x = st.selectbox("Select X-axis feature:", options=df.columns, index=2)
 feature_y = st.selectbox("Select Y-axis feature:", options=df.columns, index=3)
 
+st.write(f"### Scatter Plot: {feature_x} vs {feature_y}")
 fig_scatter, ax_scatter = plt.subplots()
 sns.scatterplot(data=df, x=feature_x, y=feature_y, hue='diagnosis', palette='viridis', ax=ax_scatter)
 ax_scatter.set_title(f'Scatter Plot: {feature_x} vs {feature_y}')
 st.pyplot(fig_scatter)
 
-# Model Configuration Section
-st.write("""
-## Evaluation Set Configuration
-[intro text about the importance of having a separate evaluation set and how to choose its size]
-""")
-
+st.write("## Evaluation Set Size")
 eval_size = st.slider(
     "How many subjects do you want to keep for final evaluation?", 
     min_value=1, max_value=50, value=10
 )
 
+st.write("## Data Processing for MLP Model")
 (X_train, X_valid, X_eval, y_train, y_valid, y_eval) = set_data_for_model_with_eval(
     df, random_state=42, eval_size=eval_size
 )
 
-st.write("""
-## Neural Network Architecture
-[intro text about how to configure the neural network, what each parameter means, and best practices]
-""")
-
 input_size = X_train.shape[1]
+
+st.write("## Configuring the MLP Model")
 model = MLPSequential(input_size)
 
-# Interactive network configuration
-num_layers = st.number_input("Number of hidden layers:", min_value=1, max_value=5, value=2)
-
-for i in range(num_layers):
-    col1, col2 = st.columns(2)
-    with col1:
-        neurons = st.number_input(f"Neurons in layer {i+1}:", min_value=1, max_value=100, value=24)
-    with col2:
-        activation = st.selectbox(
-            f"Activation function for layer {i+1}:",
-            options=['relu', 'sigmoid'],
-            index=0
-        )
-    model.Dense(neurons, activation)
-
-# Output layer configuration
-output_type = st.radio(
-    "Select output type:",
-    options=['Binary Classification (Sigmoid)', 'Multi-class Classification (Softmax)']
-)
-
-if output_type == 'Binary Classification (Sigmoid)':
-    model.Dense(1, 'sigmoid')
-else:
-    model.Dense(2, 'softmax')
+model.Dense(24, 'relu')
+model.Dense(48, 'relu')
+model.Dense(2, 'softmax')
 
 model.compile()
+st.write("Model compiled successfully with layers:")
+st.write("Layer 1: 24 neurons, activation='relu'")
+st.write("Layer 2: 48 neurons, activation='relu'")
+st.write("Output Layer: 2 neurons, activation='softmax'")
 
-# Training Configuration
-st.write("""
-## Model Training and Evaluation
-[intro text about training parameters, what they mean, and how they affect the model]
-""")
-
+st.write("## Model Training")
 epochs = st.number_input("Enter number of epochs:", min_value=10, max_value=100000, value=1000, step=10)
 learning_rate = st.number_input("Enter learning rate:", min_value=0.0001, max_value=0.1, value=0.0349, step=0.0001)
 early_stopping_patience = st.slider("Early Stopping Patience:", min_value=1, max_value=50, value=5)
@@ -125,12 +76,7 @@ if st.button("Train Model"):
     model.save_and_plot_history()
     st.write("Training history saved and plotted.")
 
-# Final Evaluation
-st.write("""
-## Final Model Evaluation
-[intro text about confusion matrix, what each value means, and how to interpret the results]
-""")
-
+st.write("## Model Evaluation on the Final Test Set")
 if st.button("Evaluate Model"):
     y_pred = model.predict(X_eval)
     
@@ -142,14 +88,12 @@ if st.button("Evaluate Model"):
     }
     
     results_df = pd.DataFrame(data)
+    
     st.write("### Evaluation Results:")
     st.table(results_df)
 
-    # Confusion Matrix with detailed breakdown
     from sklearn.metrics import confusion_matrix
     cm = confusion_matrix(y_eval, y_pred)
-    
-    # Visual confusion matrix
     fig_cm, ax_cm = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Benign', 'Malignant'],
                 yticklabels=['Benign', 'Malignant'], ax=ax_cm)
@@ -157,13 +101,3 @@ if st.button("Evaluate Model"):
     ax_cm.set_ylabel('True Label')
     ax_cm.set_title('Confusion Matrix')
     st.pyplot(fig_cm)
-
-    # Detailed confusion matrix breakdown
-    st.write("### Confusion Matrix Breakdown:")
-    tn, fp, fn, tp = cm.ravel()
-    st.write(f"""
-    - True Negatives (Correctly identified Benign): {tn}
-    - False Positives (Incorrectly identified as Malignant): {fp}
-    - False Negatives (Incorrectly identified as Benign): {fn}
-    - True Positives (Correctly identified Malignant): {tp}
-    """)
