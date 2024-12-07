@@ -83,16 +83,16 @@ st.write("""
 ## Data Analysis
 
 ### Correlation Analysis
-The heatmap below shows the correlation coefficients between all features in our dataset. This visualization helps us understand the relationships between different characteristics of cell nuclei:
+The heatmap below shows the correlation coefficients between all features in our dataset. Understanding these relationships is crucial for both model development and result interpretation:
 
 - **Dark Red**: Strong positive correlation (close to +1)
 - **Dark Blue**: Strong negative correlation (close to -1)
 - **White**: Little to no correlation (close to 0)
 
-Key insights:
-- Features like radius, area, and perimeter show strong positive correlations, which is expected as they are geometrically related
-- Texture measurements tend to show weaker correlations with other features
-- Understanding these relationships is crucial for interpreting our model's behavior
+Key insights for our model:
+- Strong correlations between features (radius, area, perimeter) explain why our neural network can achieve good results even when some features provide similar information
+- Features with low correlation to others often provide unique information, potentially helping the model capture different aspects of the data
+- This analysis helps us understand if our model's performance is based on diverse feature information or redundant patterns
 """)
 
 fig, ax = plt.subplots(figsize=(25, 20))
@@ -103,13 +103,13 @@ plt.close()
 
 st.write("""
 ### Feature Visualization
-Use the interactive scatter plot below to explore relationships between any two features. 
+The interactive scatter plot below is a powerful tool for understanding our model's decision-making process. 
 Select different features from the dropdowns to:
 - Identify patterns between features
 - Observe the separation between benign and malignant cases
-- Discover potential feature combinations that might be particularly informative for classification
+- Discover which feature combinations might be driving our model's predictions
 
-The color coding (benign vs malignant) helps visualize how well different feature pairs might help in distinguishing between diagnoses.
+When features show clear separation between benign and malignant cases in the scatter plot, it often indicates areas where our model can make more confident predictions. Overlapping regions might be where the model has more difficulty and relies on more complex feature combinations.
 """)
 
 feature_x = st.selectbox("Select X-axis feature:", options=df.columns, index=2)
