@@ -144,12 +144,37 @@ eval_size = st.slider(
     df, random_state=42, eval_size=eval_size
 )
 
-st.image("images/mlp.png")
+st.image("images/nnl.png")
 
 st.write("""
 ## Neural Network Architecture
-[intro text about how to configure the neural network, what each parameter means, and best practices]
+
+The architecture of our neural network is highly customizable through the following parameters:
+
+### Number of Hidden Layers
+Select the number of layers between the input and output. Each additional layer allows the network to learn more complex patterns:
+- 1-2 layers are often sufficient for simple patterns
+- 3-5 layers can capture more complex relationships
+- More layers increase training time and may require more data to train effectively
+
+### Layer Configuration
+For each layer, you can specify:
+
+1. **Number of Neurons**: 
+- More neurons enable learning more complex patterns
+- Too many neurons can lead to overfitting
+- Too few might limit the model's learning capacity
+
+2. **Activation Function**:
+- ReLU (Rectified Linear Unit): Most commonly used, helps with faster learning
+- Sigmoid: Useful for capturing non-linear patterns
+
+### Training Parameters
+
+Configure how the model learns:
 """)
+
+st.image("images/mlp.png")
 
 input_size = X_train.shape[1]
 model = MLPSequential(input_size)
