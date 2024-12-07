@@ -354,22 +354,15 @@ if st.button("Evaluate Model"):
         plt.close()
 
         # Detailed confusion matrix breakdown
-        st.write("### Confusion Matrix Breakdown:")
         tn, fp, fn, tp = cm.ravel()
+
         st.write(f"""
-        - True Negatives (Correctly identified Benign): {tn}
-        - False Positives (Incorrectly identified as Malignant): {fp}
-        - False Negatives (Incorrectly identified as Benign): {fn}
-        - True Positives (Correctly identified Malignant): {tp}
+        ### Understanding the Confusion Matrix
+        The confusion matrix shows four key metrics:
+        - True Negatives (TN). Correctly identified benign cases: {tn}
+        - False Positives (FP). Benign cases incorrectly identified as malignant: {fp}
+        - False Negatives (FN): Malignant cases incorrectly identified as benign: {fn}
+        - True Positives (TP). Correctly identified malignant cases: {tp}
+
+        This breakdown is crucial for medical applications where understanding the types of errors is as important as overall accuracy.
         """)
-
-st.write("""
-### Understanding the Confusion Matrix
-The confusion matrix shows four key metrics:
-- True Negatives (TN): Correctly identified benign cases
-- False Positives (FP): Benign cases incorrectly identified as malignant
-- False Negatives (FN): Malignant cases incorrectly identified as benign
-- True Positives (TP): Correctly identified malignant cases
-
-This breakdown is crucial for medical applications where understanding the types of errors is as important as overall accuracy.
-""")
