@@ -15,7 +15,7 @@ os.makedirs('data', exist_ok=True)
 # Project Introduction
 st.title("MLP Classifier Interactive Application")
 
-st.image("images/nn.png", caption="Neural Network")
+st.image("images/nn.png")
 
 st.write("""
 ## Multilayer Perceptron Neural Network
@@ -43,7 +43,7 @@ b = b - learning_rate * ∂L/∂b
 This hands-on approach provides deep insights into neural network operations and the mathematics behind deep learning.
 """)
 
-st.image("images/med.png", caption="Medical Research")
+st.image("images/med.png")
 
 st.write("""
 ## Dataset Overview
@@ -75,6 +75,8 @@ This encoding and standardization of the data is crucial for the proper function
 data_path = 'data/data.csv'
 df = get_df(data_path)
 st.dataframe(df)
+
+st.image("images/cell.png")
 
 # Data Analysis Section
 st.write("""
