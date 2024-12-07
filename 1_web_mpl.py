@@ -186,18 +186,6 @@ if st.session_state.training_results:
         with col2:
             st.pyplot(st.session_state.acc_fig)
 
-# Always display training results if they exist
-if st.session_state.training_results:
-    st.write("### Training Results:")
-    st.write(f"Validation Loss: {st.session_state.training_results['val_loss']:.4f}")
-    st.write(f"Validation Accuracy: {st.session_state.training_results['val_accuracy']:.4f}")
-    
-    if st.session_state.loss_fig and st.session_state.acc_fig:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.pyplot(st.session_state.loss_fig)
-        with col2:
-            st.pyplot(st.session_state.acc_fig)
 
 # Evaluation button
 if st.button("Evaluate Model"):
