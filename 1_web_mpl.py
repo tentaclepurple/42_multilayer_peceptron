@@ -24,14 +24,18 @@ Our implementation includes:
 - Backpropagation algorithm for computing gradients of the loss function with respect to weights and biases
 - Gradient descent optimization to iteratively adjust network parameters
 - Binary cross-entropy loss function for classification tasks
-- Various activation functions (ReLU, sigmoid) implemented with their respective derivatives
+- Various activation functions (ReLU, Sigmoid, Softmax) implemented with their respective derivatives
 
 The network processes input features through multiple layers of neurons, where each neuron computes:
+
 z = Σ(w_i * x_i) + b
+         
 a = activation(z)
 
 During training, the backpropagation algorithm uses the chain rule to compute partial derivatives and update weights:
+
 w = w - learning_rate * ∂L/∂w
+         
 b = b - learning_rate * ∂L/∂b
 
 This hands-on approach provides deep insights into neural network operations and the mathematics behind deep learning.
