@@ -152,31 +152,39 @@ with training_section:
                     'val_accuracy': val_accuracy
                 }
                 
-                st.success('Training completed!')
-                st.write(f"Final Validation Loss: {val_loss:.4f}")
-                st.write(f"Final Validation Accuracy: {val_accuracy:.4f}")
+                # Remove these lines that show immediate results
+                # st.success('Training completed!')
+                # st.write(f"Final Validation Loss: {val_loss:.4f}")
+                # st.write(f"Final Validation Accuracy: {val_accuracy:.4f}")
 
-                # Create and save plots
-                col1, col2 = st.columns(2)
-                with col1:
-                    model.plot_loss()
-                    fig_loss = plt.gcf()
-                    st.pyplot(fig_loss)
-                    st.session_state.loss_fig = fig_loss
-                    plt.close()
+                # Create and save plots (don't display them here)
+                model.plot_loss()
+                st.session_state.loss_fig = plt.gcf()
+                plt.close()
                 
-                with col2:
-                    model.plot_accuracy()
-                    fig_acc = plt.gcf()
-                    st.pyplot(fig_acc)
-                    st.session_state.acc_fig = fig_acc
-                    plt.close()
+                model.plot_accuracy()
+                st.session_state.acc_fig = plt.gcf()
+                plt.close()
 
                 model.save_and_plot_history()
                 
         except Exception as e:
             sys.stdout = old_stdout
             st.error(f"An error occurred during training: {str(e)}")
+
+# Always display training results if they exist
+if st.session_state.training_results:
+    st.success('Training completed!')  # Moved here
+    st.write("### Training Results:")
+    st.write(f"Validation Loss: {st.session_state.training_results['val_loss']:.4f}")
+    st.write(f"Validation Accuracy: {st.session_state.training_results['val_accuracy']:.4f}")
+    
+    if st.session_state.loss_fig and st.session_state.acc_fig:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.pyplot(st.session_state.loss_fig)
+        with col2:
+            st.pyplot(st.session_state.acc_fig)
 
 # Always display training results if they exist
 if st.session_state.training_results:
