@@ -41,10 +41,31 @@ b = b - learning_rate * ∂L/∂b
 This hands-on approach provides deep insights into neural network operations and the mathematics behind deep learning.
 """)
 
-# Data Section
 st.write("""
 ## Dataset Overview
-[intro text about the dataset, what features it contains, and what we're trying to predict]
+This application uses breast cancer diagnostic data from the Wisconsin Breast Cancer Database (WBCD). Each record represents characteristics of cell nuclei obtained from a digitized image of a fine needle aspirate (FNA) of a breast mass.
+
+The dataset includes measurements for malignant and benign breast cancer cases. For computational purposes and binary classification requirements, we have encoded the diagnosis as follows:
+- Malignant (M) → 1
+- Benign (B) → 0
+
+Each sample contains 30 features computed from the digitized image, measuring various characteristics of the cell nuclei present in the image, such as:
+- Radius (mean distance from center to perimeter points)
+- Texture (standard deviation of gray-scale values)
+- Perimeter
+- Area
+- Smoothness (local variation in radius lengths)
+- Compactness
+- Concavity
+- Symmetry
+- Fractal dimension
+
+For each feature, three different values are calculated:
+- Mean
+- Standard error
+- "Worst" or largest (mean of the three largest values)
+
+This encoding and standardization of the data is crucial for the proper functioning of our neural network, as it allows for binary classification and ensures all features are in appropriate numerical ranges.
 """)
 
 data_path = 'data/data.csv'
