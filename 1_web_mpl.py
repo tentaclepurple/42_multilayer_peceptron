@@ -168,14 +168,15 @@ For each layer, you can specify:
 2. **Activation Function**:
 - ReLU (Rectified Linear Unit): Most commonly used, helps with faster learning
 - Sigmoid: Useful for capturing non-linear patterns
-
-### Training Parameters
-
-Configure how the model learns:
 """)
 
 st.image("images/mlp.png")
 
+
+st.write("""
+### Training Parameters
+Configure how the model learns:
+""")
 input_size = X_train.shape[1]
 model = MLPSequential(input_size)
 
