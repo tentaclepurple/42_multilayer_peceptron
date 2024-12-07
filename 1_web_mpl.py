@@ -15,7 +15,7 @@ os.makedirs('data', exist_ok=True)
 # Project Introduction
 st.title("MLP Classifier Interactive Application")
 
-st.image("/images/cell_analysis.png", caption="Breast Cancer Cell Analysis")
+st.image("/images/nn.png", caption="Breast Cancer Cell Analysis")
 
 st.write("""
 ## Multilayer Perceptron Neural Network
