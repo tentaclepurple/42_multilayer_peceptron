@@ -81,8 +81,18 @@ st.image("images/cell.png")
 # Data Analysis Section
 st.write("""
 ## Data Analysis
+
 ### Correlation Analysis
-[intro text about correlation heatmaps and what insights we can gain from them]
+The heatmap below shows the correlation coefficients between all features in our dataset. This visualization helps us understand the relationships between different characteristics of cell nuclei:
+
+- **Dark Red**: Strong positive correlation (close to +1)
+- **Dark Blue**: Strong negative correlation (close to -1)
+- **White**: Little to no correlation (close to 0)
+
+Key insights:
+- Features like radius, area, and perimeter show strong positive correlations, which is expected as they are geometrically related
+- Texture measurements tend to show weaker correlations with other features
+- Understanding these relationships is crucial for interpreting our model's behavior
 """)
 
 fig, ax = plt.subplots(figsize=(25, 20))
@@ -93,7 +103,13 @@ plt.close()
 
 st.write("""
 ### Feature Visualization
-[intro text about scatter plots, how to use this section, and what patterns to look for]
+Use the interactive scatter plot below to explore relationships between any two features. 
+Select different features from the dropdowns to:
+- Identify patterns between features
+- Observe the separation between benign and malignant cases
+- Discover potential feature combinations that might be particularly informative for classification
+
+The color coding (benign vs malignant) helps visualize how well different feature pairs might help in distinguishing between diagnoses.
 """)
 
 feature_x = st.selectbox("Select X-axis feature:", options=df.columns, index=2)
