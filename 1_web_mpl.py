@@ -40,6 +40,7 @@ fig, ax = plt.subplots(figsize=(25, 20))
 sns.heatmap(df.corr(), annot=True, cmap='coolwarm', linewidths=0.5, ax=ax)
 ax.set_title('Feature Correlation Heatmap')
 st.pyplot(fig)
+plt.close()
 
 st.write("""
 ### Feature Visualization
@@ -53,6 +54,7 @@ fig_scatter, ax_scatter = plt.subplots()
 sns.scatterplot(data=df, x=feature_x, y=feature_y, hue='diagnosis', palette='viridis', ax=ax_scatter)
 ax_scatter.set_title(f'Scatter Plot: {feature_x} vs {feature_y}')
 st.pyplot(fig_scatter)
+plt.close()
 
 # Model Configuration Section
 st.write("""
@@ -115,75 +117,123 @@ epochs = st.number_input("Enter number of epochs:", min_value=10, max_value=1000
 learning_rate = st.number_input("Enter learning rate:", min_value=0.0001, max_value=0.1, value=0.0349, step=0.0001)
 early_stopping_patience = st.slider("Early Stopping Patience:", min_value=1, max_value=50, value=5)
 
+# Initialize session state
+if 'training_completed' not in st.session_state:
+    st.session_state.training_completed = False
+    st.session_state.val_loss = None
+    st.session_state.val_accuracy = None
+    st.session_state.model = None
+    st.session_state.training_results = None
+    st.session_state.evaluation_results = None
+
 if st.button("Train Model"):
     status_text = st.empty()
+    progress_text = st.empty()
     
     try:
         with st.spinner('Training in progress...'):
+            # Entrenar el modelo
             model.fit(X_train, y_train, epochs=epochs, learning_rate=learning_rate,
                      validation_data=(X_valid, y_valid), early_stopping_patience=early_stopping_patience)
             
+            # Evaluar el modelo
             val_loss, val_accuracy = model.evaluate(X_valid, y_valid)
+            
+            # Guardar resultados en session_state
+            st.session_state.training_completed = True
+            st.session_state.val_loss = val_loss
+            st.session_state.val_accuracy = val_accuracy
+            st.session_state.model = model
+            
+            # Mostrar resultados
             st.success('Training completed!')
-            st.write(f"Final Validation Loss: {val_loss:.4f}")
-            st.write(f"Final Validation Accuracy: {val_accuracy:.4f}")
+            st.session_state.training_results = {
+                'val_loss': val_loss,
+                'val_accuracy': val_accuracy
+            }
 
+            # Plots
             col1, col2 = st.columns(2)
             with col1:
                 model.plot_loss()
-                st.pyplot(plt.gcf())
-                plt.close()
+                st.session_state.fig_loss = plt.gcf()
+                st.pyplot(st.session_state.fig_loss)
             with col2:
                 model.plot_accuracy()
-                st.pyplot(plt.gcf())
-                plt.close()
+                st.session_state.fig_acc = plt.gcf()
+                st.pyplot(st.session_state.fig_acc)
 
             model.save_and_plot_history()
-            st.write("Training history saved and plotted.")
             
     except Exception as e:
         st.error(f"An error occurred during training: {str(e)}")
 
+# Show previous training results if they exist
+if st.session_state.training_results:
+    st.write("### Training Results:")
+    st.write(f"Validation Loss: {st.session_state.training_results['val_loss']:.4f}")
+    st.write(f"Validation Accuracy: {st.session_state.training_results['val_accuracy']:.4f}")
+    
+    # Show plots if they exist
+    if hasattr(st.session_state, 'fig_loss') and hasattr(st.session_state, 'fig_acc'):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.pyplot(st.session_state.fig_loss)
+        with col2:
+            st.pyplot(st.session_state.fig_acc)
+
 # Final Evaluation Section
-st.write("""
-## Final Model Evaluation
-[intro text about confusion matrix, what each value means, and how to interpret the results]
-""")
-
 if st.button("Evaluate Model"):
-    y_pred = model.predict(X_eval)
-    
-    data = {
-        'Subject': list(range(1, len(y_eval) + 1)),
-        'Real Diagnosis': ['Benign' if real == 0 else 'Malignant' for real in y_eval],
-        'Predicted Diagnosis': ['Benign' if pred == 0 else 'Malignant' for pred in y_pred],
-        'Result': ['Success' if pred == real else 'Fail' for pred, real in zip(y_pred, y_eval)]
-    }
-    
-    results_df = pd.DataFrame(data)
-    st.write("### Evaluation Results:")
-    st.table(results_df)
+    if st.session_state.model is None:
+        st.error("Please train the model first!")
+    else:
+        # Debugging information
+        st.write("### Debug Information:")
+        st.write("Sample of X_eval (first 5 rows):", X_eval[:5])
+        st.write("Sample of y_eval (first 5 values):", y_eval[:5])
+        
+        y_pred = st.session_state.model.predict(X_eval)
+        
+        # Create DataFrame with results
+        results = []
+        for i, (real, pred) in enumerate(zip(y_eval, y_pred)):
+            results.append({
+                'Subject': i+1,
+                'Real Diagnosis': 'Benign' if real == 0 else 'Malignant',
+                'Predicted Diagnosis': 'Benign' if pred == 0 else 'Malignant',
+                'Result': 'Success' if real == pred else 'Fail'
+            })
+        
+        results_df = pd.DataFrame(results)
+        st.write("### Evaluation Results:")
+        st.dataframe(results_df)
 
-    # Confusion Matrix with detailed breakdown
-    from sklearn.metrics import confusion_matrix
-    cm = confusion_matrix(y_eval, y_pred)
-    
-    # Visual confusion matrix
-    fig_cm, ax_cm = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Benign', 'Malignant'],
-                yticklabels=['Benign', 'Malignant'], ax=ax_cm)
-    ax_cm.set_xlabel('Predicted Label')
-    ax_cm.set_ylabel('True Label')
-    ax_cm.set_title('Confusion Matrix')
-    st.pyplot(fig_cm)
-    plt.close()
+        # Confusion Matrix
+        from sklearn.metrics import confusion_matrix
+        cm = confusion_matrix(y_eval, y_pred)
+        
+        # Visual confusion matrix
+        fig_cm, ax_cm = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Benign', 'Malignant'],
+                    yticklabels=['Benign', 'Malignant'], ax=ax_cm)
+        ax_cm.set_xlabel('Predicted Label')
+        ax_cm.set_ylabel('True Label')
+        ax_cm.set_title('Confusion Matrix')
+        st.pyplot(fig_cm)
+        plt.close()
 
-    # Detailed confusion matrix breakdown
-    st.write("### Confusion Matrix Breakdown:")
-    tn, fp, fn, tp = cm.ravel()
-    st.write(f"""
-    - True Negatives (Correctly identified Benign): {tn}
-    - False Positives (Incorrectly identified as Malignant): {fp}
-    - False Negatives (Incorrectly identified as Benign): {fn}
-    - True Positives (Correctly identified Malignant): {tp}
-    """)
+        # Detailed confusion matrix breakdown
+        st.write("### Confusion Matrix Breakdown:")
+        tn, fp, fn, tp = cm.ravel()
+        st.write(f"""
+        - True Negatives (Correctly identified Benign): {tn}
+        - False Positives (Incorrectly identified as Malignant): {fp}
+        - False Negatives (Incorrectly identified as Benign): {fn}
+        - True Positives (Correctly identified Malignant): {tp}
+        """)
+
+        # Save evaluation results to session state
+        st.session_state.evaluation_results = {
+            'results_df': results_df,
+            'confusion_matrix': cm
+        }
