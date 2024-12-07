@@ -16,8 +16,25 @@ os.makedirs('data', exist_ok=True)
 st.title("MLP Classifier Interactive Application")
 
 st.write("""
-## Introduction to Multilayer Perceptron
-[intro text about what is a multilayer perceptron, its components, and how it works]
+## Multilayer Perceptron Neural Network
+This project implements a Multilayer Perceptron (MLP) from scratch, focusing on binary classification. Unlike common approaches that rely on deep learning frameworks like TensorFlow or PyTorch, we've built our neural network by implementing all the fundamental mathematical operations and algorithms manually.
+
+Our implementation includes:
+- Complete feedforward propagation, calculating weighted sums and activations through multiple layers
+- Backpropagation algorithm for computing gradients of the loss function with respect to weights and biases
+- Gradient descent optimization to iteratively adjust network parameters
+- Binary cross-entropy loss function for classification tasks
+- Various activation functions (ReLU, sigmoid) implemented with their respective derivatives
+
+The network processes input features through multiple layers of neurons, where each neuron computes:
+z = Σ(w_i * x_i) + b
+a = activation(z)
+
+During training, the backpropagation algorithm uses the chain rule to compute partial derivatives and update weights:
+w = w - learning_rate * ∂L/∂w
+b = b - learning_rate * ∂L/∂b
+
+This hands-on approach provides deep insights into neural network operations and the mathematics behind deep learning.
 """)
 
 # Data Section
