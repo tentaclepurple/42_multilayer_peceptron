@@ -15,7 +15,7 @@ os.makedirs('data', exist_ok=True)
 # Project Introduction
 st.title("MLP Classifier Interactive Application")
 
-st.image("images/nn.png", caption="Breast Cancer Cell Analysis")
+st.image("images/nn.png", caption="Neural Network")
 
 st.write("""
 ## Multilayer Perceptron Neural Network
@@ -42,6 +42,8 @@ b = b - learning_rate * ∂L/∂b
 
 This hands-on approach provides deep insights into neural network operations and the mathematics behind deep learning.
 """)
+
+st.image("images/med.png", caption="Medical Research")
 
 st.write("""
 ## Dataset Overview
