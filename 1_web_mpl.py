@@ -15,6 +15,8 @@ os.makedirs('data', exist_ok=True)
 # Project Introduction
 st.title("MLP Classifier Interactive Application")
 
+st.image("/images/cell_analysis.png", caption="Breast Cancer Cell Analysis")
+
 st.write("""
 ## Multilayer Perceptron Neural Network
 This project implements a Multilayer Perceptron (MLP) from scratch, focusing on binary classification. Unlike common approaches that rely on deep learning frameworks like TensorFlow or PyTorch, we've built our neural network by implementing all the fundamental mathematical operations and algorithms manually.
