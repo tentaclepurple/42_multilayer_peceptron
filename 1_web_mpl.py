@@ -362,3 +362,14 @@ if st.button("Evaluate Model"):
         - False Negatives (Incorrectly identified as Benign): {fn}
         - True Positives (Correctly identified Malignant): {tp}
         """)
+
+st.write("""
+### Understanding the Confusion Matrix
+The confusion matrix shows four key metrics:
+- True Negatives (TN): Correctly identified benign cases
+- False Positives (FP): Benign cases incorrectly identified as malignant
+- False Negatives (FN): Malignant cases incorrectly identified as benign
+- True Positives (TP): Correctly identified malignant cases
+
+This breakdown is crucial for medical applications where understanding the types of errors is as important as overall accuracy.
+""")
