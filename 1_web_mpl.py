@@ -170,13 +170,8 @@ For each layer, you can specify:
 - Sigmoid: Useful for capturing non-linear patterns
 """)
 
-st.image("images/mlp.png")
 
 
-st.write("""
-### Training Parameters
-Configure how the model learns:
-""")
 input_size = X_train.shape[1]
 model = MLPSequential(input_size)
 
@@ -199,10 +194,23 @@ for i in range(num_layers):
 model.Dense(2, 'softmax')
 model.compile()
 
+st.image("images/mlp.png")
+
 # Training Configuration
 st.write("""
-## Model Training and Evaluation
-[intro text about training parameters, what they mean, and how they affect the model]
+#### Number of Epochs:
+The number of complete passes through the training data. More epochs allow more learning but might lead to overfitting.
+
+#### Learning Rate:
+Controls how much the model adjusts its weights in response to errors:
+- Higher values (e.g., 0.1) mean faster learning but might miss optimal weights
+- Lower values (e.g., 0.0001) mean more stable but slower learning
+
+#### Early Stopping Patience:
+Number of epochs to wait for improvement before stopping training:
+- Helps prevent overfitting
+- Saves computational time
+- Automatically finds the optimal training duration
 """)
 
 epochs = st.number_input("Enter number of epochs:", min_value=10, max_value=100000, value=1000, step=10)
