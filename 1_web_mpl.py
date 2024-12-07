@@ -95,17 +95,8 @@ for i in range(num_layers):
         )
     model.Dense(neurons, activation)
 
-# Output layer configuration
-output_type = st.radio(
-    "Select output type:",
-    options=['Binary Classification (Sigmoid)', 'Multi-class Classification (Softmax)']
-)
-
-if output_type == 'Binary Classification (Sigmoid)':
-    model.Dense(1, 'sigmoid')
-else:
-    model.Dense(2, 'softmax')
-
+# Fixed output layer for binary classification
+model.Dense(2, 'softmax')
 model.compile()
 
 # Training Configuration
@@ -118,75 +109,95 @@ epochs = st.number_input("Enter number of epochs:", min_value=10, max_value=1000
 learning_rate = st.number_input("Enter learning rate:", min_value=0.0001, max_value=0.1, value=0.0349, step=0.0001)
 early_stopping_patience = st.slider("Early Stopping Patience:", min_value=1, max_value=50, value=5)
 
-# Initialize session state for storing results
-if 'model_trained' not in st.session_state:
-    st.session_state.model_trained = False
+# Initialize session state
+if 'training_results' not in st.session_state:
+    st.session_state.training_results = None
+    st.session_state.model = None
+    st.session_state.loss_fig = None
+    st.session_state.acc_fig = None
 
 # Training button
-if st.button("Train Model"):
-    # Placeholder for showing training progress
-    progress_placeholder = st.empty()
-    
-    # Create a custom stdout to capture print statements
-    class CustomStdout:
-        def __init__(self, placeholder):
-            self.placeholder = placeholder
-            
-        def write(self, text):
-            if 'Epoch' in text:
-                self.placeholder.text(text.strip())
+training_section = st.container()
+with training_section:
+    if st.button("Train Model"):
+        progress_placeholder = st.empty()
+        
+        class CustomStdout:
+            def __init__(self, placeholder):
+                self.placeholder = placeholder
                 
-        def flush(self):
-            pass
+            def write(self, text):
+                if 'Epoch' in text:
+                    self.placeholder.text(text.strip())
+                    
+            def flush(self):
+                pass
 
-    # Redirect stdout to our custom output
-    old_stdout = sys.stdout
-    sys.stdout = CustomStdout(progress_placeholder)
-    
-    try:
-        with st.spinner('Training in progress...'):
-            model.fit(X_train, y_train, epochs=epochs, learning_rate=learning_rate,
-                     validation_data=(X_valid, y_valid), early_stopping_patience=early_stopping_patience)
-            
-            # Restore stdout
+        old_stdout = sys.stdout
+        sys.stdout = CustomStdout(progress_placeholder)
+        
+        try:
+            with st.spinner('Training in progress...'):
+                model.fit(X_train, y_train, epochs=epochs, learning_rate=learning_rate,
+                         validation_data=(X_valid, y_valid), early_stopping_patience=early_stopping_patience)
+                
+                sys.stdout = old_stdout
+                
+                val_loss, val_accuracy = model.evaluate(X_valid, y_valid)
+                
+                # Save results and model to session state
+                st.session_state.model = model
+                st.session_state.training_results = {
+                    'val_loss': val_loss,
+                    'val_accuracy': val_accuracy
+                }
+                
+                st.success('Training completed!')
+                st.write(f"Final Validation Loss: {val_loss:.4f}")
+                st.write(f"Final Validation Accuracy: {val_accuracy:.4f}")
+
+                # Create and save plots
+                col1, col2 = st.columns(2)
+                with col1:
+                    model.plot_loss()
+                    fig_loss = plt.gcf()
+                    st.pyplot(fig_loss)
+                    st.session_state.loss_fig = fig_loss
+                    plt.close()
+                
+                with col2:
+                    model.plot_accuracy()
+                    fig_acc = plt.gcf()
+                    st.pyplot(fig_acc)
+                    st.session_state.acc_fig = fig_acc
+                    plt.close()
+
+                model.save_and_plot_history()
+                
+        except Exception as e:
             sys.stdout = old_stdout
-            
-            val_loss, val_accuracy = model.evaluate(X_valid, y_valid)
-            st.success('Training completed!')
-            st.write(f"Final Validation Loss: {val_loss:.4f}")
-            st.write(f"Final Validation Accuracy: {val_accuracy:.4f}")
+            st.error(f"An error occurred during training: {str(e)}")
 
-            # Save trained model and results
-            st.session_state.model = model
-            st.session_state.model_trained = True
-            
-            # Display training plots
-            col1, col2 = st.columns(2)
-            with col1:
-                model.plot_loss()
-                plt.title('Training and Validation Loss')
-                st.pyplot(plt)
-                plt.close()
-            with col2:
-                model.plot_accuracy()
-                plt.title('Training and Validation Accuracy')
-                st.pyplot(plt)
-                plt.close()
-
-            model.save_and_plot_history()
-            
-    except Exception as e:
-        sys.stdout = old_stdout
-        st.error(f"An error occurred during training: {str(e)}")
+# Always display training results if they exist
+if st.session_state.training_results:
+    st.write("### Training Results:")
+    st.write(f"Validation Loss: {st.session_state.training_results['val_loss']:.4f}")
+    st.write(f"Validation Accuracy: {st.session_state.training_results['val_accuracy']:.4f}")
+    
+    if st.session_state.loss_fig and st.session_state.acc_fig:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.pyplot(st.session_state.loss_fig)
+        with col2:
+            st.pyplot(st.session_state.acc_fig)
 
 # Evaluation button
 if st.button("Evaluate Model"):
-    if not st.session_state.model_trained:
+    if st.session_state.model is None:
         st.error("Please train the model first!")
     else:
         y_pred = st.session_state.model.predict(X_eval)
         
-        # Create results DataFrame
         results = []
         for i, (real, pred) in enumerate(zip(y_eval, y_pred)):
             results.append({
