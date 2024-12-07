@@ -198,6 +198,8 @@ st.image("images/mlp.png")
 
 # Training Configuration
 st.write("""
+## Training Configuration
+         
 #### Number of Epochs:
 The number of complete passes through the training data. More epochs allow more learning but might lead to overfitting.
 
@@ -225,6 +227,20 @@ if 'training_results' not in st.session_state:
     st.session_state.acc_fig = None
 
 # Training button
+
+st.write("""
+### Training Process
+During training, you'll observe:
+- Loss values: Measure how far predictions are from actual values
+- Accuracy: Percentage of correct predictions
+- Validation metrics: Show how well the model performs on unseen data
+
+The training plots will show:
+- If the model is learning effectively
+- If it's overfitting (validation metrics getting worse)
+- When the model has reached optimal performance
+""")
+
 training_section = st.container()
 with training_section:
     if st.button("Train Model"):
@@ -294,6 +310,14 @@ if st.session_state.training_results:
         with col2:
             st.pyplot(st.session_state.acc_fig)
 
+
+st.write("""
+### Final Evaluation
+The evaluation on the held-out test set provides:
+- Real-world performance assessment
+- Confusion matrix showing detailed prediction breakdown
+- Individual case predictions
+""")
 
 # Evaluation button
 if st.button("Evaluate Model"):
