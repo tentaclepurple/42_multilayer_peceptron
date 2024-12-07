@@ -124,7 +124,15 @@ plt.close()
 # Model Configuration Section
 st.write("""
 ## Evaluation Set Configuration
-[intro text about the importance of having a separate evaluation set and how to choose its size]
+
+A crucial aspect of validating our neural network's performance is setting aside a portion of data that the model will never see during training. This held-out evaluation set serves as our final test to assess how well our model generalizes to new, unseen cases.
+
+Use the slider below to select the number of cases for final evaluation:
+- Smaller evaluation sets (e.g., 10 cases) provide quick feedback but might not be statistically representative
+- Larger evaluation sets (e.g., 50 cases) give more reliable performance metrics but leave fewer samples for training
+- We recommend a balanced choice based on your needs for either more training data or more thorough evaluation
+
+Remember: These cases will only be used after the model is completely trained to provide an unbiased assessment of its real-world performance.
 """)
 
 eval_size = st.slider(
@@ -135,6 +143,8 @@ eval_size = st.slider(
 (X_train, X_valid, X_eval, y_train, y_valid, y_eval) = set_data_for_model_with_eval(
     df, random_state=42, eval_size=eval_size
 )
+
+st.image("images/mlp.png")
 
 st.write("""
 ## Neural Network Architecture
